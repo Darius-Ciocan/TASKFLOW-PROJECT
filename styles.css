@@ -1,0 +1,156 @@
+:root {
+  --color-brand: #2563eb;
+  --color-ink: #17202a;
+  --color-surface: #ffffff;
+  --color-muted: #64748b;
+  --font-base: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-base);
+}
+
+/* Botones de filtro: comparten estilo y el activo se marca con azul. */
+.filter-btn {
+  min-height: 2.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.filter-btn:hover,
+.filter-btn:focus {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+  outline: none;
+}
+
+.filter-btn:focus {
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 18%);
+}
+
+.filter-btn.is-active {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: white;
+}
+
+/* Cada tarea es una fila flexible para que se adapte bien a movil. */
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  animation: task-in 180ms ease-out;
+}
+
+/* Cuando una tarea esta terminada, bajo el contraste y tacho el texto. */
+.task-item.is-completed .task-title {
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+/* Etiqueta visual para distinguir la prioridad de un vistazo. */
+.priority-badge {
+  display: inline-flex;
+  min-width: 4.6rem;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.priority-badge[data-priority="alta"] {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.priority-badge[data-priority="media"] {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.priority-badge[data-priority="baja"] {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Boton de eliminar separado para que la accion destructiva se vea clara. */
+.delete-btn {
+  border-radius: 0.375rem;
+  border: 1px solid #fecaca;
+  padding: 0.45rem 0.7rem;
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.delete-btn:hover,
+.delete-btn:focus {
+  background: #fef2f2;
+  border-color: #ef4444;
+  outline: none;
+}
+
+.delete-btn:focus {
+  box-shadow: 0 0 0 3px rgb(220 38 38 / 18%);
+}
+
+/* Tarjetas pequenas del panel de estadisticas. */
+.stat-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.stat-card dt {
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.stat-card dd {
+  margin-top: 0.35rem;
+  color: #0f172a;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Animacion suave al aparecer una tarea nueva o al cambiar filtros. */
+@keyframes task-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* En pantallas pequenas la tarea pasa a columna para que no se apriete. */
+@media (max-width: 640px) {
+  .task-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .task-item > div:last-child {
+    justify-content: space-between;
+  }
+}
