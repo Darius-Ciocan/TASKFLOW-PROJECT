@@ -1,4 +1,5 @@
 const STORAGE_KEY = "taskflow.tasks";
+const THEME_KEY = "taskflow.theme";
 
 // Guardo aqui todos los elementos del DOM que voy a necesitar.
 const form = document.querySelector("#task-form");
@@ -11,6 +12,7 @@ const statusText = document.querySelector("#status-text");
 const clearCompletedButton = document.querySelector("#clear-completed");
 const filterButtons = document.querySelectorAll(".filter-btn");
 const particleContainer = document.querySelector("#particles");
+const themeToggle = document.querySelector("#theme-toggle");
 
 const stats = {
   total: document.querySelector("#stat-total"),
@@ -24,6 +26,27 @@ const stats = {
 let tasks = loadTasks();
 let activeFilter = "all";
 let draggedTaskId = null;
+
+// Aplico el tema guardado para que la pagina recuerde si estaba en oscuro.
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+
+  const isDark = theme === "dark";
+  themeToggle.textContent = isDark ? "Modo claro" : "Modo oscuro";
+  themeToggle.setAttribute("aria-label", isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+}
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  if (savedTheme === "dark" || savedTheme === "light") {
+    return savedTheme;
+  }
+
+  return prefersDark ? "dark" : "light";
+}
 
 // Creo unas particulas decorativas para que la pagina no se vea tan plana.
 function initParticles() {
@@ -299,6 +322,12 @@ clearCompletedButton.addEventListener("click", () => {
   render();
 });
 
+themeToggle.addEventListener("click", () => {
+  const currentTheme = document.documentElement.dataset.theme;
+  applyTheme(currentTheme === "dark" ? "light" : "dark");
+});
+
 // Primera carga de la app.
+applyTheme(loadTheme());
 initParticles();
 render();

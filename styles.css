@@ -9,17 +9,36 @@
   --font-base: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
+[data-theme="dark"] {
+  --color-brand: #60a5fa;
+  --color-brand-dark: #93c5fd;
+  --color-accent: #2dd4bf;
+  --color-coral: #fb923c;
+  --color-ink: #e5edf8;
+  --color-surface: #101827;
+  --color-muted: #a7b2c4;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   font-family: var(--font-base);
+  color: var(--color-ink);
   background:
     radial-gradient(circle at top left, rgb(20 184 166 / 16%), transparent 32rem),
     radial-gradient(circle at 85% 10%, rgb(249 115 22 / 13%), transparent 28rem),
     linear-gradient(135deg, #f8fafc 0%, #eef4ff 46%, #f9fafb 100%);
   overflow-x: hidden;
+  transition: background 220ms ease, color 220ms ease;
+}
+
+[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top left, rgb(45 212 191 / 14%), transparent 34rem),
+    radial-gradient(circle at 85% 10%, rgb(96 165 250 / 16%), transparent 30rem),
+    linear-gradient(135deg, #07111f 0%, #111827 48%, #0f172a 100%);
 }
 
 body::before {
@@ -33,6 +52,12 @@ body::before {
     linear-gradient(90deg, rgb(15 23 42 / 5%) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: linear-gradient(to bottom, black, transparent 78%);
+}
+
+[data-theme="dark"] body::before {
+  background-image:
+    linear-gradient(rgb(226 232 240 / 6%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(226 232 240 / 6%) 1px, transparent 1px);
 }
 
 /* Las particulas son pequenas y discretas para que den vida sin molestar. */
@@ -64,6 +89,12 @@ body::before {
   box-shadow: 0 18px 55px rgb(15 23 42 / 8%);
 }
 
+[data-theme="dark"] .app-header {
+  border-bottom-color: rgb(148 163 184 / 18%);
+  background: rgb(15 23 42 / 78%);
+  box-shadow: 0 18px 55px rgb(0 0 0 / 24%);
+}
+
 .brand-pill {
   width: fit-content;
   border: 1px solid rgb(37 99 235 / 18%);
@@ -82,6 +113,12 @@ body::before {
   color: transparent;
 }
 
+[data-theme="dark"] .hero-title {
+  background: linear-gradient(135deg, #f8fafc, #93c5fd 58%, #5eead4);
+  background-clip: text;
+  color: transparent;
+}
+
 .app-card {
   position: relative;
   overflow: hidden;
@@ -90,6 +127,12 @@ body::before {
   background: rgb(255 255 255 / 82%);
   box-shadow: 0 22px 60px rgb(15 23 42 / 10%);
   backdrop-filter: blur(16px);
+}
+
+[data-theme="dark"] .app-card {
+  border-color: rgb(148 163 184 / 18%);
+  background: rgb(15 23 42 / 76%);
+  box-shadow: 0 22px 60px rgb(0 0 0 / 25%);
 }
 
 .app-card::before {
@@ -124,9 +167,52 @@ body::before {
   transform: translateY(-1px);
 }
 
+.theme-toggle {
+  border: 1px solid rgb(37 99 235 / 22%);
+  background: rgb(255 255 255 / 72%);
+  color: var(--color-brand-dark);
+  box-shadow: 0 10px 24px rgb(15 23 42 / 8%);
+}
+
+.theme-toggle:hover {
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .theme-toggle {
+  border-color: rgb(96 165 250 / 28%);
+  background: rgb(30 41 59 / 78%);
+  color: #bfdbfe;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: rgb(37 99 235 / 22%);
+}
+
+[data-theme="dark"] .secondary-action {
+  border-color: rgb(248 113 113 / 28%);
+  background: rgb(30 41 59 / 72%);
+  color: #fecaca;
+}
+
+[data-theme="dark"] .secondary-action:hover {
+  background: rgb(127 29 29 / 24%);
+}
+
 input,
 select {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 75%);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select {
+  border-color: rgb(148 163 184 / 28%);
+  background: rgb(15 23 42 / 72%);
+  color: #e5edf8;
+}
+
+[data-theme="dark"] input::placeholder {
+  color: #94a3b8;
 }
 
 input:hover,
@@ -145,6 +231,12 @@ select:hover {
   font-size: 0.875rem;
   font-weight: 700;
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+[data-theme="dark"] .filter-btn {
+  border-color: rgb(148 163 184 / 25%);
+  background: rgb(30 41 59 / 72%);
+  color: #cbd5e1;
 }
 
 .filter-btn:hover,
@@ -178,10 +270,18 @@ select:hover {
   animation: task-in 180ms ease-out;
 }
 
+[data-theme="dark"] .task-item {
+  background: rgb(15 23 42 / 52%);
+}
+
 .task-item:hover {
   background: #ffffff;
   box-shadow: inset 4px 0 0 rgb(20 184 166 / 65%);
   transform: translateX(2px);
+}
+
+[data-theme="dark"] .task-item:hover {
+  background: rgb(30 41 59 / 82%);
 }
 
 .task-item[draggable="true"] {
@@ -195,6 +295,10 @@ select:hover {
 .task-item.is-drag-over {
   background: #ecfeff;
   box-shadow: inset 4px 0 0 var(--color-brand);
+}
+
+[data-theme="dark"] .task-item.is-drag-over {
+  background: rgb(20 184 166 / 16%);
 }
 
 /* Este boton deja claro que la tarea se puede arrastrar para ordenar. */
@@ -211,6 +315,12 @@ select:hover {
   touch-action: none;
 }
 
+[data-theme="dark"] .drag-handle {
+  border-color: rgb(148 163 184 / 25%);
+  background: rgb(30 41 59 / 76%);
+  color: #cbd5e1;
+}
+
 .drag-handle:hover,
 .drag-handle:focus {
   border-color: var(--color-brand);
@@ -223,6 +333,25 @@ select:hover {
 .task-item.is-completed .task-title {
   color: #64748b;
   text-decoration: line-through;
+}
+
+[data-theme="dark"] .task-title,
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] .text-slate-950,
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .text-slate-700,
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-500 {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .task-item.is-completed .task-title {
+  color: #94a3b8;
 }
 
 /* Etiqueta visual para distinguir la prioridad de un vistazo. */
@@ -263,6 +392,12 @@ select:hover {
   transition: background 160ms ease, border-color 160ms ease;
 }
 
+[data-theme="dark"] .delete-btn {
+  border-color: rgb(248 113 113 / 30%);
+  background: rgb(127 29 29 / 12%);
+  color: #fecaca;
+}
+
 .delete-btn:hover,
 .delete-btn:focus {
   background: #fef2f2;
@@ -283,6 +418,12 @@ select:hover {
   box-shadow: 0 12px 26px rgb(15 23 42 / 7%);
 }
 
+[data-theme="dark"] .stat-card {
+  border-color: rgb(148 163 184 / 18%);
+  background: linear-gradient(145deg, rgb(30 41 59 / 80%), rgb(15 23 42 / 72%));
+  box-shadow: 0 12px 26px rgb(0 0 0 / 20%);
+}
+
 .stat-card dt {
   color: var(--color-muted);
   font-size: 0.8125rem;
@@ -295,6 +436,10 @@ select:hover {
   font-size: 1.75rem;
   font-weight: 800;
   line-height: 1;
+}
+
+[data-theme="dark"] .stat-card dd {
+  color: #f8fafc;
 }
 
 /* Animacion suave al aparecer una tarea nueva o al cambiar filtros. */
