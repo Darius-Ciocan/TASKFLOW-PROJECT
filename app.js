@@ -10,6 +10,7 @@ const emptyState = document.querySelector("#empty-state");
 const statusText = document.querySelector("#status-text");
 const clearCompletedButton = document.querySelector("#clear-completed");
 const filterButtons = document.querySelectorAll(".filter-btn");
+const particleContainer = document.querySelector("#particles");
 
 const stats = {
   total: document.querySelector("#stat-total"),
@@ -23,6 +24,33 @@ const stats = {
 let tasks = loadTasks();
 let activeFilter = "all";
 let draggedTaskId = null;
+
+// Creo unas particulas decorativas para que la pagina no se vea tan plana.
+function initParticles() {
+  if (!particleContainer || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
+
+  const colors = ["#2563eb", "#14b8a6", "#f97316"];
+  const totalParticles = 34;
+
+  for (let index = 0; index < totalParticles; index += 1) {
+    const particle = document.createElement("span");
+    const size = Math.floor(Math.random() * 5) + 3;
+    const color = colors[index % colors.length];
+
+    particle.className = "particle";
+    particle.style.left = `${Math.random() * 100}%`;
+    particle.style.width = `${size}px`;
+    particle.style.height = `${size}px`;
+    particle.style.setProperty("--particle-color", color);
+    particle.style.setProperty("--particle-speed", `${Math.random() * 12 + 13}s`);
+    particle.style.setProperty("--particle-drift", `${Math.random() * 160 - 80}px`);
+    particle.style.animationDelay = `${Math.random() * -18}s`;
+
+    particleContainer.append(particle);
+  }
+}
 
 // Estructura base de una tarea dentro de la aplicacion.
 function createTask(title, priority) {
@@ -272,4 +300,5 @@ clearCompletedButton.addEventListener("click", () => {
 });
 
 // Primera carga de la app.
+initParticles();
 render();

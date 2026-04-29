@@ -31,20 +31,23 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="min-h-screen bg-mist text-ink">
+    <!-- Fondo decorativo: las particulas se crean desde JavaScript. -->
+    <div id="particles" class="particles" aria-hidden="true"></div>
+
     <!-- Cabecera principal de la app, con el titulo y una accion rapida. -->
-    <header class="border-b border-slate-200 bg-white">
-      <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 sm:px-6 lg:px-8">
-        <p class="text-sm font-semibold uppercase tracking-wide text-brand">TaskFlow</p>
+    <header class="app-header">
+      <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-7 sm:px-6 lg:px-8">
+        <p class="brand-pill">TaskFlow</p>
         <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 class="text-3xl font-bold tracking-normal text-slate-950">Organiza tus tareas</h1>
-            <p class="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+            <h1 class="hero-title text-3xl font-bold tracking-normal text-slate-950">Organiza tus tareas</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
               Crea, completa, elimina y filtra tus tareas con guardado automático en el navegador.
             </p>
           </div>
           <button
             id="clear-completed"
-            class="inline-flex w-fit items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-danger hover:text-danger focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2"
+            class="secondary-action inline-flex w-fit items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2"
             type="button"
           >
             Limpiar completadas
@@ -53,12 +56,12 @@
       </div>
     </header>
 
-    <main class="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8">
+    <main class="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8">
       <!-- Zona principal: formulario, filtros y listado de tareas. -->
       <section class="flex flex-col gap-5" aria-labelledby="task-form-title">
         <form
           id="task-form"
-          class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          class="app-card p-4 sm:p-5"
           autocomplete="off"
         >
           <h2 id="task-form-title" class="text-lg font-semibold text-slate-950">Nueva tarea</h2>
@@ -93,7 +96,7 @@
             </div>
             <div class="flex items-end">
               <button
-                class="inline-flex w-full items-center justify-center rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                class="primary-action inline-flex w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold text-white transition focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
                 type="submit"
               >
                 Añadir
@@ -103,7 +106,7 @@
         </form>
 
         <!-- Estos botones cambian lo que se ve sin borrar datos. -->
-        <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div class="app-card toolbar-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div aria-label="Filtros de tareas" class="grid grid-cols-3 gap-2" role="tablist">
             <button class="filter-btn is-active" type="button" data-filter="all" aria-pressed="true">
               Todas
@@ -119,7 +122,7 @@
         </div>
 
         <!-- Aqui se pintan las tareas desde JavaScript usando la plantilla de abajo. -->
-        <section class="rounded-lg border border-slate-200 bg-white shadow-sm" aria-labelledby="task-list-title">
+        <section class="app-card list-card" aria-labelledby="task-list-title">
           <div class="border-b border-slate-200 px-4 py-3 sm:px-5">
             <h2 id="task-list-title" class="text-lg font-semibold text-slate-950">Lista de tareas</h2>
           </div>
@@ -132,7 +135,7 @@
       </section>
 
       <!-- Panel lateral con los numeros principales de la lista. -->
-      <aside class="h-fit rounded-lg border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="stats-title">
+      <aside class="app-card stats-panel h-fit p-5" aria-labelledby="stats-title">
         <h2 id="stats-title" class="text-lg font-semibold text-slate-950">Estadísticas</h2>
         <dl class="mt-5 grid grid-cols-2 gap-3">
           <div class="stat-card">
