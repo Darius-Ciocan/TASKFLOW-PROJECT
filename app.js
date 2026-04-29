@@ -5,6 +5,7 @@ const THEME_KEY = "taskflow.theme";
 const form = document.querySelector("#task-form");
 const titleInput = document.querySelector("#task-title");
 const priorityInput = document.querySelector("#task-priority");
+const searchInput = document.querySelector("#task-search");
 const list = document.querySelector("#task-list");
 const template = document.querySelector("#task-template");
 const emptyState = document.querySelector("#empty-state");
@@ -25,9 +26,13 @@ const stats = {
 
 let tasks = loadTasks();
 let activeFilter = "all";
+let searchTerm = "";
 let draggedTaskId = null;
 
-// Aplico el tema guardado para que la pagina recuerde si estaba en oscuro.
+/**
+ * Cambia el tema visual y lo guarda para la proxima visita.
+ * @param {"light" | "dark"} theme Tema que se quiere aplicar.
+ */
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem(THEME_KEY, theme);
@@ -37,6 +42,10 @@ function applyTheme(theme) {
   themeToggle.setAttribute("aria-label", isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
 }
 
+/**
+ * Decide el tema inicial usando LocalStorage o la preferencia del sistema.
+ * @returns {"light" | "dark"} Tema inicial.
+ */
 function loadTheme() {
   const savedTheme = localStorage.getItem(THEME_KEY);
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -48,7 +57,10 @@ function loadTheme() {
   return prefersDark ? "dark" : "light";
 }
 
-// Creo unas particulas decorativas para que la pagina no se vea tan plana.
+/**
+ * Crea particulas decorativas sin afectar a la funcionalidad principal.
+ * Respeta la preferencia de reducir movimiento del sistema.
+ */
 function initParticles() {
   if (!particleContainer || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return;
@@ -75,7 +87,12 @@ function initParticles() {
   }
 }
 
-// Estructura base de una tarea dentro de la aplicacion.
+/**
+ * Crea la estructura base de una tarea dentro de la aplicacion.
+ * @param {string} title Texto de la tarea.
+ * @param {"alta" | "media" | "baja"} priority Prioridad seleccionada.
+ * @returns {{id: string, title: string, priority: string, completed: boolean, createdAt: string}}
+ */
 function createTask(title, priority) {
   return {
     id: crypto.randomUUID(),
@@ -86,34 +103,71 @@ function createTask(title, priority) {
   };
 }
 
-// Intento cargar tareas guardadas; si algo falla, empiezo con una lista vacia.
+/**
+ * Limpia el texto que escribe el usuario para evitar tareas vacias o enormes.
+ * @param {string} value Texto original.
+ * @returns {string} Texto preparado para guardar.
+ */
+function normalizeTaskTitle(value) {
+  return value.trim().replace(/\s+/g, " ").slice(0, 80);
+}
+
+/**
+ * Comprueba que una tarea cargada tiene la forma minima que necesita la app.
+ * @param {unknown} task Posible tarea cargada desde LocalStorage.
+ * @returns {boolean} Resultado de la validacion.
+ */
+function isValidTask(task) {
+  return (
+    typeof task === "object" &&
+    task !== null &&
+    typeof task.id === "string" &&
+    typeof task.title === "string" &&
+    typeof task.completed === "boolean"
+  );
+}
+
+/**
+ * Intento cargar tareas guardadas; si algo falla, empiezo con una lista vacia.
+ * @returns {Array} Tareas validas guardadas.
+ */
 function loadTasks() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];
+    const savedTasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];
+    return Array.isArray(savedTasks) ? savedTasks.filter(isValidTask) : [];
   } catch {
     return [];
   }
 }
 
-// Cada cambio importante se guarda para que siga igual al recargar la pagina.
+/**
+ * Guarda el array actual para que siga igual al recargar la pagina.
+ */
 function saveTasks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
-// El filtro activo decide que tareas se pintan en pantalla.
+/**
+ * Aplica filtros de estado y busqueda sin modificar el array original.
+ * @returns {Array} Tareas que se deben mostrar.
+ */
 function getFilteredTasks() {
-  if (activeFilter === "pending") {
-    return tasks.filter((task) => !task.completed);
-  }
+  return tasks.filter((task) => {
+    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      activeFilter === "all" ||
+      (activeFilter === "pending" && !task.completed) ||
+      (activeFilter === "completed" && task.completed);
 
-  if (activeFilter === "completed") {
-    return tasks.filter((task) => task.completed);
-  }
-
-  return tasks;
+    return matchesSearch && matchesStatus;
+  });
 }
 
-// Formato corto en espanol para mostrar la fecha de creacion.
+/**
+ * Da formato corto en espanol para mostrar la fecha de creacion.
+ * @param {string} dateValue Fecha guardada en la tarea.
+ * @returns {string} Fecha formateada.
+ */
 function formatDate(dateValue) {
   return new Intl.DateTimeFormat("es", {
     day: "2-digit",
@@ -122,7 +176,9 @@ function formatDate(dateValue) {
   }).format(new Date(dateValue));
 }
 
-// Dibujo la lista usando el template del HTML.
+/**
+ * Dibujo la lista usando el template del HTML.
+ */
 function renderTasks() {
   list.innerHTML = "";
 
@@ -135,6 +191,7 @@ function renderTasks() {
     const title = node.querySelector(".task-title");
     const meta = node.querySelector(".task-meta");
     const badge = node.querySelector(".priority-badge");
+    const editButton = node.querySelector(".edit-btn");
     const deleteButton = node.querySelector(".delete-btn");
     const dragHandle = node.querySelector(".drag-handle");
 
@@ -148,6 +205,7 @@ function renderTasks() {
     meta.textContent = `Creada el ${formatDate(task.createdAt)}`;
     badge.textContent = task.priority;
     badge.dataset.priority = task.priority;
+    editButton.setAttribute("aria-label", `Editar "${task.title}"`);
     deleteButton.setAttribute("aria-label", `Eliminar "${task.title}"`);
     dragHandle.setAttribute("aria-label", `Arrastrar "${task.title}" para ordenar`);
 
@@ -155,7 +213,9 @@ function renderTasks() {
   });
 }
 
-// Recalculo los numeros del panel lateral cada vez que cambia algo.
+/**
+ * Recalculo los numeros del panel lateral cada vez que cambia algo.
+ */
 function renderStats() {
   const total = tasks.length;
   const completed = tasks.filter((task) => task.completed).length;
@@ -173,13 +233,18 @@ function renderStats() {
   clearCompletedButton.classList.toggle("opacity-50", completed === 0);
 }
 
-// Punto unico para refrescar toda la interfaz.
+/**
+ * Punto unico para refrescar toda la interfaz.
+ */
 function render() {
   renderTasks();
   renderStats();
 }
 
-// Cambia el filtro y actualiza tambien el estado visual de los botones.
+/**
+ * Cambia el filtro y actualiza tambien el estado visual de los botones.
+ * @param {"all" | "pending" | "completed"} filter Filtro elegido.
+ */
 function setFilter(filter) {
   activeFilter = filter;
 
@@ -192,7 +257,11 @@ function setFilter(filter) {
   render();
 }
 
-// Muevo una tarea dentro del array y guardo el nuevo orden.
+/**
+ * Muevo una tarea dentro del array y guardo el nuevo orden.
+ * @param {string} draggedId Id de la tarea arrastrada.
+ * @param {string} targetId Id de la tarea donde se suelta.
+ */
 function reorderTasks(draggedId, targetId) {
   if (!draggedId || !targetId || draggedId === targetId) {
     return;
@@ -211,11 +280,33 @@ function reorderTasks(draggedId, targetId) {
   render();
 }
 
+/**
+ * Edita el texto de una tarea con validacion sencilla.
+ * @param {string} taskId Id de la tarea que se quiere editar.
+ */
+function editTask(taskId) {
+  const task = tasks.find((currentTask) => currentTask.id === taskId);
+
+  if (!task) {
+    return;
+  }
+
+  const newTitle = normalizeTaskTitle(prompt("Edita la tarea:", task.title) ?? "");
+
+  if (!newTitle) {
+    return;
+  }
+
+  task.title = newTitle;
+  saveTasks();
+  render();
+}
+
 // Al enviar el formulario creo la tarea y la guardo en primer lugar.
 form.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  const title = titleInput.value.trim();
+  const title = normalizeTaskTitle(titleInput.value);
   const priority = priorityInput.value;
 
   if (!title) {
@@ -249,14 +340,22 @@ list.addEventListener("change", (event) => {
 
 // Delegacion de eventos para borrar tareas aunque se hayan creado despues.
 list.addEventListener("click", (event) => {
-  if (!event.target.matches(".delete-btn")) {
+  if (!event.target.matches(".delete-btn") && !event.target.matches(".edit-btn")) {
     return;
   }
 
   const item = event.target.closest(".task-item");
-  tasks = tasks.filter((task) => task.id !== item.dataset.id);
-  saveTasks();
-  render();
+
+  if (event.target.matches(".edit-btn")) {
+    editTask(item.dataset.id);
+    return;
+  }
+
+  if (event.target.matches(".delete-btn")) {
+    tasks = tasks.filter((task) => task.id !== item.dataset.id);
+    saveTasks();
+    render();
+  }
 });
 
 // Drag and drop: guardo que tarea se arrastra y al soltarla cambio el orden.
@@ -314,6 +413,11 @@ list.addEventListener("dragend", () => {
 
 filterButtons.forEach((button) => {
   button.addEventListener("click", () => setFilter(button.dataset.filter));
+});
+
+searchInput.addEventListener("input", () => {
+  searchTerm = normalizeTaskTitle(searchInput.value).toLowerCase();
+  render();
 });
 
 clearCompletedButton.addEventListener("click", () => {

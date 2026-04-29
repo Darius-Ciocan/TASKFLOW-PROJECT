@@ -115,6 +115,22 @@
           </div>
         </form>
 
+        <div class="app-card search-card p-4 sm:p-5">
+          <label class="mb-1 block text-sm font-medium text-slate-700" for="task-search">
+            Buscar tarea
+          </label>
+          <input
+            id="task-search"
+            class="w-full rounded-md border border-slate-300 px-3 py-2 text-base transition placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            type="search"
+            placeholder="Escribe para filtrar por nombre"
+            aria-describedby="search-help"
+          />
+          <p id="search-help" class="mt-2 text-sm text-slate-500">
+            La busqueda se combina con los filtros de estado.
+          </p>
+        </div>
+
         <!-- Estos botones cambian lo que se ve sin borrar datos. -->
         <div class="app-card toolbar-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div aria-label="Filtros de tareas" class="grid grid-cols-3 gap-2" role="tablist">
@@ -192,6 +208,9 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="priority-badge"></span>
+          <button class="edit-btn" type="button" aria-label="Editar tarea">
+            Editar
+          </button>
           <button class="delete-btn" type="button" aria-label="Eliminar tarea">
             Eliminar
           </button>
