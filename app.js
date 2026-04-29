@@ -22,6 +22,7 @@ const stats = {
 
 let tasks = loadTasks();
 let activeFilter = "all";
+let draggedTaskId = null;
 
 // Estructura base de una tarea dentro de la aplicacion.
 function createTask(title, priority) {
@@ -84,8 +85,11 @@ function renderTasks() {
     const meta = node.querySelector(".task-meta");
     const badge = node.querySelector(".priority-badge");
     const deleteButton = node.querySelector(".delete-btn");
+    const dragHandle = node.querySelector(".drag-handle");
 
     node.dataset.id = task.id;
+    node.draggable = true;
+    node.setAttribute("aria-grabbed", "false");
     node.classList.toggle("is-completed", task.completed);
     checkbox.checked = task.completed;
     checkbox.setAttribute("aria-label", `Marcar "${task.title}" como completada`);
@@ -94,6 +98,7 @@ function renderTasks() {
     badge.textContent = task.priority;
     badge.dataset.priority = task.priority;
     deleteButton.setAttribute("aria-label", `Eliminar "${task.title}"`);
+    dragHandle.setAttribute("aria-label", `Arrastrar "${task.title}" para ordenar`);
 
     list.append(node);
   });
@@ -133,6 +138,25 @@ function setFilter(filter) {
     button.setAttribute("aria-pressed", String(isActive));
   });
 
+  render();
+}
+
+// Muevo una tarea dentro del array y guardo el nuevo orden.
+function reorderTasks(draggedId, targetId) {
+  if (!draggedId || !targetId || draggedId === targetId) {
+    return;
+  }
+
+  const fromIndex = tasks.findIndex((task) => task.id === draggedId);
+  const toIndex = tasks.findIndex((task) => task.id === targetId);
+
+  if (fromIndex === -1 || toIndex === -1) {
+    return;
+  }
+
+  const [draggedTask] = tasks.splice(fromIndex, 1);
+  tasks.splice(toIndex, 0, draggedTask);
+  saveTasks();
   render();
 }
 
@@ -182,6 +206,59 @@ list.addEventListener("click", (event) => {
   tasks = tasks.filter((task) => task.id !== item.dataset.id);
   saveTasks();
   render();
+});
+
+// Drag and drop: guardo que tarea se arrastra y al soltarla cambio el orden.
+list.addEventListener("dragstart", (event) => {
+  const item = event.target.closest(".task-item");
+
+  if (!item) {
+    return;
+  }
+
+  draggedTaskId = item.dataset.id;
+  item.classList.add("is-dragging");
+  item.setAttribute("aria-grabbed", "true");
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", draggedTaskId);
+});
+
+list.addEventListener("dragover", (event) => {
+  const item = event.target.closest(".task-item");
+
+  if (!item || item.dataset.id === draggedTaskId) {
+    return;
+  }
+
+  event.preventDefault();
+  item.classList.add("is-drag-over");
+});
+
+list.addEventListener("dragleave", (event) => {
+  const item = event.target.closest(".task-item");
+
+  if (item) {
+    item.classList.remove("is-drag-over");
+  }
+});
+
+list.addEventListener("drop", (event) => {
+  const item = event.target.closest(".task-item");
+
+  if (!item) {
+    return;
+  }
+
+  event.preventDefault();
+  reorderTasks(draggedTaskId, item.dataset.id);
+});
+
+list.addEventListener("dragend", () => {
+  document.querySelectorAll(".task-item").forEach((item) => {
+    item.classList.remove("is-dragging", "is-drag-over");
+    item.setAttribute("aria-grabbed", "false");
+  });
+  draggedTaskId = null;
 });
 
 filterButtons.forEach((button) => {

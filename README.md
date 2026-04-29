@@ -12,6 +12,7 @@ TaskFlow es una aplicación web de tareas construida con HTML semántico, Tailwi
 - Ver estadísticas en tiempo real: total, pendientes, completadas y progreso.
 - Interfaz responsive con estados hover, focus y soporte de teclado.
 - Prioridades visuales: baja, media y alta.
+- Reordenar tareas con drag and drop.
 
 ## Estructura del proyecto
 
