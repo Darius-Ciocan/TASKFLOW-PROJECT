@@ -31,10 +31,8 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="min-h-screen bg-mist text-ink">
-    <!-- Fondo decorativo: las particulas se crean desde JavaScript. -->
     <div id="particles" class="particles" aria-hidden="true"></div>
 
-    <!-- Cabecera principal de la app, con el titulo y una accion rapida. -->
     <header class="app-header">
       <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-7 sm:px-6 lg:px-8">
         <p class="brand-pill">TaskFlow</p>
@@ -67,7 +65,6 @@
     </header>
 
     <main class="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8">
-      <!-- Zona principal: formulario, filtros y listado de tareas. -->
       <section class="flex flex-col gap-5" aria-labelledby="task-form-title">
         <form
           id="task-form"
@@ -131,7 +128,6 @@
           </p>
         </div>
 
-        <!-- Estos botones cambian lo que se ve sin borrar datos. -->
         <div class="app-card toolbar-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div aria-label="Filtros de tareas" class="grid grid-cols-3 gap-2" role="tablist">
             <button class="filter-btn is-active" type="button" data-filter="all" aria-pressed="true">
@@ -149,7 +145,6 @@
 
         <div id="network-message" class="network-message hidden" role="status" aria-live="polite"></div>
 
-        <!-- Aqui se pintan las tareas desde JavaScript usando la plantilla de abajo. -->
         <section class="app-card list-card" aria-labelledby="task-list-title">
           <div class="border-b border-slate-200 px-4 py-3 sm:px-5">
             <h2 id="task-list-title" class="text-lg font-semibold text-slate-950">Lista de tareas</h2>
@@ -162,7 +157,6 @@
         </section>
       </section>
 
-      <!-- Panel lateral con los numeros principales de la lista. -->
       <aside class="app-card stats-panel h-fit p-5" aria-labelledby="stats-title">
         <h2 id="stats-title" class="text-lg font-semibold text-slate-950">Estadísticas</h2>
         <dl class="mt-5 grid grid-cols-2 gap-3">
@@ -195,7 +189,6 @@
       </aside>
     </main>
 
-    <!-- Plantilla reutilizable para no escribir cada tarea a mano en el HTML. -->
     <template id="task-template">
       <li class="task-item">
         <div class="flex min-w-0 flex-1 items-start gap-3">

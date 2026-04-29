@@ -1,6 +1,5 @@
 const THEME_KEY = "taskflow.theme";
 
-// Guardo aqui todos los elementos del DOM que voy a necesitar.
 const form = document.querySelector("#task-form");
 const titleInput = document.querySelector("#task-title");
 const priorityInput = document.querySelector("#task-priority");
@@ -57,10 +56,6 @@ async function runRequest(action, successMessage = "") {
   }
 }
 
-/**
- * Cambia el tema visual y lo guarda para la proxima visita.
- * @param {"light" | "dark"} theme Tema que se quiere aplicar.
- */
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem(THEME_KEY, theme);
@@ -70,10 +65,6 @@ function applyTheme(theme) {
   themeToggle.setAttribute("aria-label", isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
 }
 
-/**
- * Decide el tema inicial usando LocalStorage o la preferencia del sistema.
- * @returns {"light" | "dark"} Tema inicial.
- */
 function loadTheme() {
   const savedTheme = localStorage.getItem(THEME_KEY);
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -85,10 +76,6 @@ function loadTheme() {
   return prefersDark ? "dark" : "light";
 }
 
-/**
- * Crea particulas decorativas sin afectar a la funcionalidad principal.
- * Respeta la preferencia de reducir movimiento del sistema.
- */
 function initParticles() {
   if (!particleContainer || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return;
@@ -115,20 +102,10 @@ function initParticles() {
   }
 }
 
-/**
- * Limpia el texto que escribe el usuario para evitar tareas vacias o enormes.
- * @param {string} value Texto original.
- * @returns {string} Texto preparado para guardar.
- */
 function normalizeTaskTitle(value) {
   return value.trim().replace(/\s+/g, " ").slice(0, 80);
 }
 
-/**
- * Comprueba que una tarea cargada tiene la forma minima que necesita la app.
- * @param {unknown} task Posible tarea recibida desde la API.
- * @returns {boolean} Resultado de la validacion.
- */
 function isValidTask(task) {
   return (
     typeof task === "object" &&
@@ -139,10 +116,6 @@ function isValidTask(task) {
   );
 }
 
-/**
- * Aplica filtros de estado y busqueda sin modificar el array original.
- * @returns {Array} Tareas que se deben mostrar.
- */
 function getFilteredTasks() {
   return tasks.filter((task) => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -155,11 +128,6 @@ function getFilteredTasks() {
   });
 }
 
-/**
- * Da formato corto en espanol para mostrar la fecha de creacion.
- * @param {string} dateValue Fecha guardada en la tarea.
- * @returns {string} Fecha formateada.
- */
 function formatDate(dateValue) {
   return new Intl.DateTimeFormat("es", {
     day: "2-digit",
@@ -168,9 +136,6 @@ function formatDate(dateValue) {
   }).format(new Date(dateValue));
 }
 
-/**
- * Dibujo la lista usando el template del HTML.
- */
 function renderTasks() {
   list.innerHTML = "";
 
@@ -205,9 +170,6 @@ function renderTasks() {
   });
 }
 
-/**
- * Recalculo los numeros del panel lateral cada vez que cambia algo.
- */
 function renderStats() {
   const total = tasks.length;
   const completed = tasks.filter((task) => task.completed).length;
@@ -225,18 +187,11 @@ function renderStats() {
   clearCompletedButton.classList.toggle("opacity-50", completed === 0);
 }
 
-/**
- * Punto unico para refrescar toda la interfaz.
- */
 function render() {
   renderTasks();
   renderStats();
 }
 
-/**
- * Cambia el filtro y actualiza tambien el estado visual de los botones.
- * @param {"all" | "pending" | "completed"} filter Filtro elegido.
- */
 function setFilter(filter) {
   activeFilter = filter;
 
@@ -249,9 +204,6 @@ function setFilter(filter) {
   render();
 }
 
-/**
- * Pide al backend la lista actual de tareas.
- */
 async function loadTasksFromApi() {
   setLoading(true);
 
@@ -266,11 +218,6 @@ async function loadTasksFromApi() {
   }
 }
 
-/**
- * Muevo una tarea dentro del array y guardo el nuevo orden.
- * @param {string} draggedId Id de la tarea arrastrada.
- * @param {string} targetId Id de la tarea donde se suelta.
- */
 function reorderTasks(draggedId, targetId) {
   if (!draggedId || !targetId || draggedId === targetId) {
     return;
@@ -293,10 +240,6 @@ function reorderTasks(draggedId, targetId) {
   });
 }
 
-/**
- * Edita el texto de una tarea con validacion sencilla.
- * @param {string} taskId Id de la tarea que se quiere editar.
- */
 function editTask(taskId) {
   const task = tasks.find((currentTask) => currentTask.id === taskId);
 
@@ -317,7 +260,6 @@ function editTask(taskId) {
   }, "Tarea editada correctamente.");
 }
 
-// Al enviar el formulario creo la tarea y la guardo en primer lugar.
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -339,7 +281,6 @@ form.addEventListener("submit", async (event) => {
   }, "Tarea creada correctamente.");
 });
 
-// Escucho cambios en los checkboxes para completar o reabrir tareas.
 list.addEventListener("change", (event) => {
   if (!event.target.matches(".task-toggle")) {
     return;
@@ -359,7 +300,6 @@ list.addEventListener("change", (event) => {
   }
 });
 
-// Delegacion de eventos para borrar tareas aunque se hayan creado despues.
 list.addEventListener("click", (event) => {
   if (!event.target.matches(".delete-btn") && !event.target.matches(".edit-btn")) {
     return;
@@ -381,7 +321,6 @@ list.addEventListener("click", (event) => {
   }
 });
 
-// Drag and drop: guardo que tarea se arrastra y al soltarla cambio el orden.
 list.addEventListener("dragstart", (event) => {
   const item = event.target.closest(".task-item");
 
@@ -458,7 +397,6 @@ themeToggle.addEventListener("click", () => {
   applyTheme(currentTheme === "dark" ? "light" : "dark");
 });
 
-// Primera carga de la app.
 applyTheme(loadTheme());
 initParticles();
 loadTasksFromApi();
