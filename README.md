@@ -1,6 +1,6 @@
 # TaskFlow
 
-TaskFlow es una aplicación web de tareas construida con HTML semántico, Tailwind CSS, CSS personalizado y JavaScript. Permite crear, completar, eliminar y filtrar tareas, con persistencia automática en LocalStorage y diseño responsive para móvil y escritorio.
+TaskFlow es una aplicación web de tareas construida con HTML semántico, Tailwind CSS, CSS personalizado, JavaScript y un backend Express. Permite crear, completar, eliminar, editar y filtrar tareas consumiendo una API REST local.
 
 ## Funcionalidades
 
@@ -8,7 +8,7 @@ TaskFlow es una aplicación web de tareas construida con HTML semántico, Tailwi
 - Marcar tareas como completadas o pendientes.
 - Eliminar tareas individuales.
 - Filtrar por todas, pendientes y completadas.
-- Guardar y cargar datos desde LocalStorage.
+- Guardar y cargar datos desde una API REST con Express.
 - Ver estadísticas en tiempo real: total, pendientes, completadas y progreso.
 - Interfaz responsive con estados hover, focus y soporte de teclado.
 - Prioridades visuales: baja, media y alta.
@@ -17,6 +17,7 @@ TaskFlow es una aplicación web de tareas construida con HTML semántico, Tailwi
 - Botón para cambiar entre modo claro y modo oscuro.
 - Buscar tareas por texto y editar tareas existentes.
 - Documentación del flujo con IA en `docs/ai`.
+- Backend Express en `server/` con API REST, middlewares y arquitectura por capas.
 
 ## Estructura del proyecto
 
@@ -34,15 +35,26 @@ taskflow/
 - Tailwind CSS mediante CDN.
 - CSS personalizado con variables.
 - JavaScript moderno.
-- LocalStorage.
+- Node.js y Express.
+- CORS y dotenv.
 
 ## Uso local
 
-Abre `index.html` en el navegador o usa un servidor local estático.
+Para usar la version con backend, arranca primero la API:
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
+Despues abre `index.html` en el navegador o usa un servidor local estatico.
 
 ```bash
 npx serve .
 ```
+
+La app consumira la API en `http://localhost:3000/api/v1/tasks`.
 
 ## Flujo Git sugerido
 

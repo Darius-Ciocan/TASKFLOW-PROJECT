@@ -1,4 +1,3 @@
-const STORAGE_KEY = "taskflow.tasks";
 const THEME_KEY = "taskflow.theme";
 
 // Guardo aqui todos los elementos del DOM que voy a necesitar.
@@ -10,6 +9,7 @@ const list = document.querySelector("#task-list");
 const template = document.querySelector("#task-template");
 const emptyState = document.querySelector("#empty-state");
 const statusText = document.querySelector("#status-text");
+const networkMessage = document.querySelector("#network-message");
 const clearCompletedButton = document.querySelector("#clear-completed");
 const filterButtons = document.querySelectorAll(".filter-btn");
 const particleContainer = document.querySelector("#particles");
@@ -24,10 +24,38 @@ const stats = {
   progressBar: document.querySelector("#progress-bar"),
 };
 
-let tasks = loadTasks();
+let tasks = [];
 let activeFilter = "all";
 let searchTerm = "";
 let draggedTaskId = null;
+let isLoading = false;
+
+function setLoading(value) {
+  isLoading = value;
+
+  if (value) {
+    renderNetworkMessage("Cargando tareas desde el servidor...");
+  }
+}
+
+function renderNetworkMessage(message, isError = false) {
+  networkMessage.textContent = message;
+  networkMessage.classList.toggle("hidden", !message);
+  networkMessage.classList.toggle("is-error", isError);
+}
+
+async function runRequest(action, successMessage = "") {
+  try {
+    renderNetworkMessage("");
+    await action();
+
+    if (successMessage) {
+      renderNetworkMessage(successMessage);
+    }
+  } catch (error) {
+    renderNetworkMessage(error.message || "No se pudo conectar con el servidor.", true);
+  }
+}
 
 /**
  * Cambia el tema visual y lo guarda para la proxima visita.
@@ -88,22 +116,6 @@ function initParticles() {
 }
 
 /**
- * Crea la estructura base de una tarea dentro de la aplicacion.
- * @param {string} title Texto de la tarea.
- * @param {"alta" | "media" | "baja"} priority Prioridad seleccionada.
- * @returns {{id: string, title: string, priority: string, completed: boolean, createdAt: string}}
- */
-function createTask(title, priority) {
-  return {
-    id: crypto.randomUUID(),
-    title,
-    priority,
-    completed: false,
-    createdAt: new Date().toISOString(),
-  };
-}
-
-/**
  * Limpia el texto que escribe el usuario para evitar tareas vacias o enormes.
  * @param {string} value Texto original.
  * @returns {string} Texto preparado para guardar.
@@ -114,7 +126,7 @@ function normalizeTaskTitle(value) {
 
 /**
  * Comprueba que una tarea cargada tiene la forma minima que necesita la app.
- * @param {unknown} task Posible tarea cargada desde LocalStorage.
+ * @param {unknown} task Posible tarea recibida desde la API.
  * @returns {boolean} Resultado de la validacion.
  */
 function isValidTask(task) {
@@ -125,26 +137,6 @@ function isValidTask(task) {
     typeof task.title === "string" &&
     typeof task.completed === "boolean"
   );
-}
-
-/**
- * Intento cargar tareas guardadas; si algo falla, empiezo con una lista vacia.
- * @returns {Array} Tareas validas guardadas.
- */
-function loadTasks() {
-  try {
-    const savedTasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];
-    return Array.isArray(savedTasks) ? savedTasks.filter(isValidTask) : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Guarda el array actual para que siga igual al recargar la pagina.
- */
-function saveTasks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
 /**
@@ -183,7 +175,7 @@ function renderTasks() {
   list.innerHTML = "";
 
   const visibleTasks = getFilteredTasks();
-  emptyState.classList.toggle("hidden", visibleTasks.length > 0);
+  emptyState.classList.toggle("hidden", isLoading || visibleTasks.length > 0);
 
   visibleTasks.forEach((task) => {
     const node = template.content.firstElementChild.cloneNode(true);
@@ -228,7 +220,7 @@ function renderStats() {
   stats.progress.textContent = `${progress}%`;
   stats.progressLabel.textContent = `${completed} de ${total}`;
   stats.progressBar.style.width = `${progress}%`;
-  statusText.textContent = `${getFilteredTasks().length} tareas visibles`;
+  statusText.textContent = isLoading ? "Cargando..." : `${getFilteredTasks().length} tareas visibles`;
   clearCompletedButton.disabled = completed === 0;
   clearCompletedButton.classList.toggle("opacity-50", completed === 0);
 }
@@ -258,6 +250,23 @@ function setFilter(filter) {
 }
 
 /**
+ * Pide al backend la lista actual de tareas.
+ */
+async function loadTasksFromApi() {
+  setLoading(true);
+
+  try {
+    const apiTasks = await taskApi.getTasks();
+    tasks = Array.isArray(apiTasks) ? apiTasks.filter(isValidTask) : [];
+  } catch (error) {
+    renderNetworkMessage(error.message || "No se pudo cargar la API.", true);
+  } finally {
+    isLoading = false;
+    render();
+  }
+}
+
+/**
  * Muevo una tarea dentro del array y guardo el nuevo orden.
  * @param {string} draggedId Id de la tarea arrastrada.
  * @param {string} targetId Id de la tarea donde se suelta.
@@ -276,8 +285,12 @@ function reorderTasks(draggedId, targetId) {
 
   const [draggedTask] = tasks.splice(fromIndex, 1);
   tasks.splice(toIndex, 0, draggedTask);
-  saveTasks();
   render();
+
+  runRequest(async () => {
+    tasks = await taskApi.reorderTasks(tasks.map((task) => task.id));
+    render();
+  });
 }
 
 /**
@@ -297,13 +310,15 @@ function editTask(taskId) {
     return;
   }
 
-  task.title = newTitle;
-  saveTasks();
-  render();
+  runRequest(async () => {
+    const updatedTask = await taskApi.updateTask(taskId, { title: newTitle });
+    task.title = updatedTask.title;
+    render();
+  }, "Tarea editada correctamente.");
 }
 
 // Al enviar el formulario creo la tarea y la guardo en primer lugar.
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const title = normalizeTaskTitle(titleInput.value);
@@ -314,12 +329,14 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  tasks.unshift(createTask(title, priority));
-  saveTasks();
-  form.reset();
-  priorityInput.value = "media";
-  titleInput.focus();
-  render();
+  await runRequest(async () => {
+    const createdTask = await taskApi.createTask({ title, priority });
+    tasks.unshift(createdTask);
+    form.reset();
+    priorityInput.value = "media";
+    titleInput.focus();
+    render();
+  }, "Tarea creada correctamente.");
 });
 
 // Escucho cambios en los checkboxes para completar o reabrir tareas.
@@ -332,9 +349,13 @@ list.addEventListener("change", (event) => {
   const task = tasks.find((currentTask) => currentTask.id === item.dataset.id);
 
   if (task) {
-    task.completed = event.target.checked;
-    saveTasks();
-    render();
+    const completed = event.target.checked;
+
+    runRequest(async () => {
+      const updatedTask = await taskApi.updateTask(task.id, { completed });
+      task.completed = updatedTask.completed;
+      render();
+    });
   }
 });
 
@@ -352,9 +373,11 @@ list.addEventListener("click", (event) => {
   }
 
   if (event.target.matches(".delete-btn")) {
-    tasks = tasks.filter((task) => task.id !== item.dataset.id);
-    saveTasks();
-    render();
+    runRequest(async () => {
+      await taskApi.deleteTask(item.dataset.id);
+      tasks = tasks.filter((task) => task.id !== item.dataset.id);
+      render();
+    }, "Tarea eliminada correctamente.");
   }
 });
 
@@ -421,9 +444,13 @@ searchInput.addEventListener("input", () => {
 });
 
 clearCompletedButton.addEventListener("click", () => {
-  tasks = tasks.filter((task) => !task.completed);
-  saveTasks();
-  render();
+  const completedTasks = tasks.filter((task) => task.completed);
+
+  runRequest(async () => {
+    await Promise.all(completedTasks.map((task) => taskApi.deleteTask(task.id)));
+    tasks = tasks.filter((task) => !task.completed);
+    render();
+  }, "Tareas completadas eliminadas.");
 });
 
 themeToggle.addEventListener("click", () => {
@@ -434,4 +461,4 @@ themeToggle.addEventListener("click", () => {
 // Primera carga de la app.
 applyTheme(loadTheme());
 initParticles();
-render();
+loadTasksFromApi();

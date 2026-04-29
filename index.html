@@ -147,6 +147,8 @@
           <p id="status-text" class="text-sm text-slate-600" aria-live="polite"></p>
         </div>
 
+        <div id="network-message" class="network-message hidden" role="status" aria-live="polite"></div>
+
         <!-- Aqui se pintan las tareas desde JavaScript usando la plantilla de abajo. -->
         <section class="app-card list-card" aria-labelledby="task-list-title">
           <div class="border-b border-slate-200 px-4 py-3 sm:px-5">
@@ -218,6 +220,7 @@
       </li>
     </template>
 
+    <script src="src/api/client.js" defer></script>
     <script src="app.js" defer></script>
   </body>
 </html>
